@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 
 pygame.init()
 
@@ -13,7 +14,8 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 
 words = [
-    "cat", "dog", "bat", "fly", "pig", "cow", "ant", "frog", "snake", "bird", "hawk", "wolf", "lion", "zebra", "horse", "fish", "shark", "panda", "bear", "ape", "worm", "sheep", "goat", "tiger", "fox", "bunny"
+    "cat", "dog", "bat", "fly", "pig", "cow", "ant", "frog", "snake", "bird", "hawk", "wolf", "lion", "zebra", "horse", "fish", "shark", "panda", "bear", "ape", 
+    "worm", "sheep", "goat", "tiger", "fox", "bunny", "elk", "bee", "eel", "owl", "hen", "rat", "emu", "gnu", "koi", "doe", "ewe", "yak", "bug", "cod", "boa"
 ]
 
 class Tile:
@@ -31,7 +33,17 @@ class Player:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
 
-    def move(self, new_rect):
+    def move(self, new_rect, grid):
+        previous_tile = None
+        for tile in grid:
+            if tile.rect == self.rect:
+                previous_tile = tile
+                break
+        if previous_tile:
+            unused_words = [word for word in words if word not in [tile.word for tile in grid]]
+            if unused_words:
+                new_word = random.choice(unused_words)
+                previous_tile.word = new_word
         self.rect = new_rect
 
     def adjacent_tiles_words(self, grid):
@@ -72,7 +84,7 @@ def main():
                     adjacent_words = player.adjacent_tiles_words(grid)
                     for word, rect in adjacent_words:
                         if input_string == word:
-                            player.move(rect)
+                            player.move(rect, grid)
                             break
                     input_string = "" 
                 elif event.key in range(32, 127): 
