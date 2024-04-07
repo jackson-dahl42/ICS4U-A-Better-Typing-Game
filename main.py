@@ -9,9 +9,6 @@ TILE_SIZE = 100
 GRID_WIDTH, GRID_HEIGHT = 5, 5
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 font = pygame.font.SysFont(None, 24)
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
 
 words = [
     "cat", "dog", "bat", "fly", "pig", "cow", "ant", "frog", "snake", "bird", "hawk", "wolf", "lion", "zebra", "horse", "fish", "shark", "panda", "bear", "ape", 
@@ -24,8 +21,8 @@ class Tile:
         self.word = word
 
     def draw(self, surface):
-        pygame.draw.rect(surface, BLACK, self.rect, 2)
-        text_surface = font.render(self.word, True, BLACK)
+        pygame.draw.rect(surface, "black", self.rect, 2)
+        text_surface = font.render(self.word, True, "black")
         text_rect = text_surface.get_rect(center=self.rect.center)
         surface.blit(text_surface, text_rect)
 
@@ -33,6 +30,7 @@ class Player:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
         self.health = 100
+        self.word = random.choice(words)
 
     def move(self, new_rect, grid):
         previous_tile = None
@@ -57,7 +55,12 @@ class Player:
         return adjacent_words
 
     def draw(self, surface):
-        pygame.draw.rect(surface, RED, self.rect)
+        pygame.draw.rect(surface, "red", self.rect)
+
+def draw_player_word(word):
+    text_surface = font.render(word, True, "black")
+    text_rect = text_surface.get_rect(midbottom=(WIDTH // 2, HEIGHT - 20))
+    screen.blit(text_surface, text_rect)
 
 class Enemy:
     def __init__(self, grid_position, speed, direction):
@@ -76,12 +79,11 @@ class Enemy:
             self.rect.x += self.speed
 
     def draw(self, surface):
-        pygame.draw.rect(surface, BLACK, self.rect)
+        pygame.draw.rect(surface, "black", self.rect)
 
 def check_collision(player, enemy):
     if player.rect.colliderect(enemy.rect):
         player.health -= 10
-        print(player.health)
 
 grid = []
 for row in range(GRID_HEIGHT):
@@ -119,15 +121,17 @@ def main():
         enemy.move()
         check_collision(player, enemy)
 
-        screen.fill(WHITE)
+        screen.fill("white")
         for tile in grid:
             tile.draw(screen)
 
         player.draw(screen)
         enemy.draw(screen)
+        draw_player_word(player.word)
 
         pygame.display.flip()
         clock.tick(60)  # Limit to 60 frames per second
 
 if __name__ == "__main__":
     main()
+
