@@ -3,11 +3,11 @@ import sys
 import random
 
 pygame.init()
-
-WIDTH, HEIGHT = 800, 600
+display_info = pygame.display.Info()
+WIDTH, HEIGHT = display_info.current_w, display_info.current_h
 TILE_SIZE = 100
 GRID_WIDTH, GRID_HEIGHT = 5, 5
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN) 
 font = pygame.font.SysFont(None, 24)
 
 words = [
