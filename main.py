@@ -32,6 +32,7 @@ class Tile:
 class Player:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
+        self.health = 100
 
     def move(self, new_rect, grid):
         previous_tile = None
@@ -58,6 +59,30 @@ class Player:
     def draw(self, surface):
         pygame.draw.rect(surface, RED, self.rect)
 
+class Enemy:
+    def __init__(self, grid_position, speed, direction):
+        self.rect = pygame.Rect(grid_position[0] * TILE_SIZE + 50, grid_position[1] * TILE_SIZE + 50, TILE_SIZE, TILE_SIZE)
+        self.speed = speed
+        self.direction = direction
+
+    def move(self):
+        if self.direction == "up":
+            self.rect.y -= self.speed
+        elif self.direction == "down":
+            self.rect.y += self.speed
+        elif self.direction == "left":
+            self.rect.x -= self.speed
+        elif self.direction == "right":
+            self.rect.x += self.speed
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, BLACK, self.rect)
+
+def check_collision(player, enemy):
+    if player.rect.colliderect(enemy.rect):
+        player.health -= 10
+        print(player.health)
+
 grid = []
 for row in range(GRID_HEIGHT):
     for col in range(GRID_WIDTH):
@@ -68,10 +93,11 @@ for row in range(GRID_HEIGHT):
         grid.append(tile)
 
 player = Player(50, 50)
+enemy = Enemy((2, 3), 1, "up")
 
 def main():
-    
     input_string = ""
+    clock = pygame.time.Clock()
 
     while True:
         for event in pygame.event.get():
@@ -86,17 +112,22 @@ def main():
                         if input_string == word:
                             player.move(rect, grid)
                             break
-                    input_string = "" 
-                elif event.key in range(32, 127): 
+                    input_string = ""
+                elif event.key in range(32, 127):
                     input_string += event.unicode
 
-        screen.fill(WHITE) 
+        enemy.move()
+        check_collision(player, enemy)
+
+        screen.fill(WHITE)
         for tile in grid:
             tile.draw(screen)
 
         player.draw(screen)
-        
+        enemy.draw(screen)
+
         pygame.display.flip()
+        clock.tick(60)  # Limit to 60 frames per second
 
 if __name__ == "__main__":
     main()
