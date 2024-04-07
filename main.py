@@ -57,6 +57,17 @@ class Player:
     def draw(self, surface):
         pygame.draw.rect(surface, "red", self.rect)
 
+class Bullet:
+    def __init__(self, x, y):
+        self.rect = pygame.Rect(x, y, 10, 20)
+        self.speed = 5
+
+    def move(self):
+        self.rect.y -= self.speed
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, "green", self.rect)
+
 def draw_player_word(word):
     text_surface = font.render(word, True, "black")
     text_rect = text_surface.get_rect(midbottom=(WIDTH // 2, HEIGHT - 20))
@@ -96,6 +107,7 @@ for row in range(GRID_HEIGHT):
 
 player = Player(50, 50)
 enemy = Enemy((2, 3), 1, "up")
+bullets = []
 
 def main():
     input_string = ""
@@ -113,10 +125,15 @@ def main():
                     for word, rect in adjacent_words:
                         if input_string == word:
                             player.move(rect, grid)
+                        if input_string == player.word:
+                            bullets.append(Bullet(player.rect.centerx - 5, player.rect.y))
                             break
                     input_string = ""
                 elif event.key in range(32, 127):
                     input_string += event.unicode
+
+        for bullet in bullets:
+            bullet.move()
 
         enemy.move()
         check_collision(player, enemy)
@@ -128,10 +145,11 @@ def main():
         player.draw(screen)
         enemy.draw(screen)
         draw_player_word(player.word)
+        for bullet in bullets:
+            bullet.draw(screen)
 
         pygame.display.flip()
         clock.tick(60)  # Limit to 60 frames per second
 
 if __name__ == "__main__":
     main()
-
