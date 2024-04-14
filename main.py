@@ -73,7 +73,7 @@ class Player:
 class Bullet:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, 10, 20)
-        self.speed = 5
+        self.speed = 10
 
     def move(self):
         self.rect.y -= self.speed
@@ -88,10 +88,11 @@ def draw_player_word(word):
 
 class Enemy:
     def __init__(self, x, y, speed, direction):
-      self.rect = pygame.Rect(x * TILE_SIZE + 50, y * TILE_SIZE + 50, TILE_SIZE, TILE_SIZE)
-      self.speed = speed
-      self.direction = direction
-    
+        self.rect = pygame.Rect(x * TILE_SIZE + 50, y * TILE_SIZE + 50, TILE_SIZE, TILE_SIZE)
+        self.speed = speed
+        self.direction = direction
+        self.image = pygame.image.load("bug_enemya.png")
+      
     def move(self):
       if self.direction == "up":
           self.rect.y -= self.speed
@@ -111,7 +112,17 @@ class Enemy:
               self.rect.right = 0
             
     def draw(self, surface):
-        pygame.draw.rect(surface, "black", self.rect)
+      if self.direction == "up":
+          rotated_image = pygame.transform.rotate(self.image, 180)
+      elif self.direction == "down":
+          rotated_image = self.image
+      elif self.direction == "left":
+          rotated_image = pygame.transform.rotate(self.image, -90)
+      elif self.direction == "right":
+          rotated_image = pygame.transform.rotate(self.image, 90)
+    
+      rotated_rect = rotated_image.get_rect(center=self.rect.center)
+      surface.blit(rotated_image, rotated_rect)
 
 def check_collision(player, enemies, bullets):
     for enemy in enemies:
@@ -189,7 +200,7 @@ def main():
           enemy.move()
         check_collision(player, enemies, bullets)
 
-        screen.fill("white")
+        screen.fill("grey")
         for tile in grid:
             tile.draw(screen)
 
