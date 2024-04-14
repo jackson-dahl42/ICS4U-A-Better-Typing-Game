@@ -88,20 +88,28 @@ def draw_player_word(word):
 
 class Enemy:
     def __init__(self, x, y, speed, direction):
-        self.rect = pygame.Rect(x * TILE_SIZE + 50, y * TILE_SIZE + 50, TILE_SIZE, TILE_SIZE)
-        self.speed = speed
-        self.direction = direction
-
+      self.rect = pygame.Rect(x * TILE_SIZE + 50, y * TILE_SIZE + 50, TILE_SIZE, TILE_SIZE)
+      self.speed = speed
+      self.direction = direction
+    
     def move(self):
-        if self.direction == "up":
-            self.rect.y -= self.speed
-        elif self.direction == "down":
-            self.rect.y += self.speed
-        elif self.direction == "left":
-            self.rect.x -= self.speed
-        elif self.direction == "right":
-            self.rect.x += self.speed
-
+      if self.direction == "up":
+          self.rect.y -= self.speed
+          if self.rect.bottom < 0:
+              self.rect.top = HEIGHT
+      elif self.direction == "down":
+          self.rect.y += self.speed
+          if self.rect.top > HEIGHT:
+              self.rect.bottom = 0
+      elif self.direction == "left":
+          self.rect.x -= self.speed
+          if self.rect.right < 0:
+              self.rect.left = WIDTH
+      elif self.direction == "right":
+          self.rect.x += self.speed
+          if self.rect.left > WIDTH:
+              self.rect.right = 0
+            
     def draw(self, surface):
         pygame.draw.rect(surface, "black", self.rect)
 
@@ -136,7 +144,7 @@ def spawn_enemy(enemies, grid):
       x = random.randint(0, GRID_WIDTH - 1)
       y = GRID_HEIGHT - 1
       direction = "up"
-  enemies.append(Enemy(x, y, 1, direction))
+  enemies.append(Enemy(x, y, 5, direction))
 
   
 grid = []
