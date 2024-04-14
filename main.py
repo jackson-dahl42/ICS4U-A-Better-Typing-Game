@@ -3,16 +3,27 @@ import sys
 import random
 
 pygame.init()
+pygame.font.init()
+pygame.font.get_fonts()
 display_info = pygame.display.Info()
 WIDTH, HEIGHT = display_info.current_w, display_info.current_h
 TILE_SIZE = 100
-GRID_WIDTH, GRID_HEIGHT = 5, 5
-screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN) 
+GRID_WIDTH, GRID_HEIGHT = 8, 8
+screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
 font = pygame.font.SysFont(None, 24)
 
 words = [
-    "cat", "dog", "bat", "fly", "pig", "cow", "ant", "frog", "snake", "bird", "hawk", "wolf", "lion", "zebra", "horse", "fish", "shark", "panda", "bear", "ape", 
-    "worm", "sheep", "goat", "tiger", "fox", "bunny", "elk", "bee", "eel", "owl", "hen", "rat", "emu", "gnu", "koi", "doe", "ewe", "yak", "bug", "cod", "boa"
+    "cat", "dog", "bat", "fly", "pig", "cow", "ant", "frog", 
+    "snake", "bird", "hawk", "wolf", "lion", "zebra", "horse", "fish", 
+    "shark", "panda", "bear", "ape", "worm", "sheep", "goat", "tiger", 
+    "fox", "bunny", "elk", "bee", "eel", "owl", "hen", "rat", 
+    "emu", "gnu", "koi", "doe", "ewe", "yak", "bug", "cod", 
+    "boa", "polar", "twister", "tree", "ball", "cake", "candy", "air",
+    "net", "rod", "ore", "tail", "meat", "egg", "fire", "ice"
+    "boat", "zen", "rot", "flame", "with", "out", "top", "tide", "fling",
+    "like", "love", "hate", "sad", "mad", "joy", "joyful", "joyous",
+    "lily", "leaf", "flower", "blooms",
+    "rock", "stone", "grass", "gravel", "dirt", "earth", "soil", "ground"
 ]
 
 class Tile:
@@ -31,6 +42,8 @@ class Player:
         self.rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
         self.health = 100
         self.word = random.choice(words)
+        self.enemies_killed = 0
+        self.invincible = False
 
     def move(self, new_rect, grid):
         previous_tile = None
@@ -74,8 +87,8 @@ def draw_player_word(word):
     screen.blit(text_surface, text_rect)
 
 class Enemy:
-    def __init__(self, grid_position, speed, direction):
-        self.rect = pygame.Rect(grid_position[0] * TILE_SIZE + 50, grid_position[1] * TILE_SIZE + 50, TILE_SIZE, TILE_SIZE)
+    def __init__(self, x, y, speed, direction):
+        self.rect = pygame.Rect(x * TILE_SIZE + 50, y * TILE_SIZE + 50, TILE_SIZE, TILE_SIZE)
         self.speed = speed
         self.direction = direction
 
@@ -92,10 +105,40 @@ class Enemy:
     def draw(self, surface):
         pygame.draw.rect(surface, "black", self.rect)
 
-def check_collision(player, enemy):
-    if player.rect.colliderect(enemy.rect):
+def check_collision(player, enemies, bullets):
+    for enemy in enemies:
+      if player.rect.colliderect(enemy.rect):
         player.health -= 10
+    for bullet in bullets:
+      if bullet.rect.y < 0:
+        bullets.remove(bullet)
+      for enemy in enemies:
+        if bullet.rect.colliderect(enemy.rect):
+            enemies.remove(enemy)
+            bullets.remove(bullet)
+            player.enemies_killed += 1
+      
+def spawn_enemy(enemies, grid):
+  side = random.choice(["left", "right", "top", "bottom"])
+  if side == "left":
+      x = 0
+      y = random.randint(0, GRID_HEIGHT - 1)
+      direction = "right"
+  elif side == "right":
+      x = GRID_WIDTH - 1
+      y = random.randint(0, GRID_HEIGHT - 1)
+      direction = "left"
+  elif side == "top":
+      x = random.randint(0, GRID_WIDTH - 1)
+      y = 0
+      direction = "down"
+  elif side == "bottom":
+      x = random.randint(0, GRID_WIDTH - 1)
+      y = GRID_HEIGHT - 1
+      direction = "up"
+  enemies.append(Enemy(x, y, 1, direction))
 
+  
 grid = []
 for row in range(GRID_HEIGHT):
     for col in range(GRID_WIDTH):
@@ -106,7 +149,7 @@ for row in range(GRID_HEIGHT):
         grid.append(tile)
 
 player = Player(50, 50)
-enemy = Enemy((2, 3), 1, "up")
+enemies = []
 bullets = []
 
 def main():
@@ -134,21 +177,27 @@ def main():
 
         for bullet in bullets:
             bullet.move()
-
-        enemy.move()
-        check_collision(player, enemy)
+        for enemy in enemies:
+          enemy.move()
+        check_collision(player, enemies, bullets)
 
         screen.fill("white")
         for tile in grid:
             tile.draw(screen)
 
         player.draw(screen)
-        enemy.draw(screen)
+        for enemy in enemies:
+          enemy.draw(screen)
         draw_player_word(player.word)
         for bullet in bullets:
             bullet.draw(screen)
 
         pygame.display.flip()
+        if len(enemies) < 5:
+          spawn_enemy(enemies, grid)
+        if player.health <= 0:
+            print("Game Over")
+            #pygame.quit()
         clock.tick(60)  # Limit to 60 frames per second
 
 if __name__ == "__main__":
