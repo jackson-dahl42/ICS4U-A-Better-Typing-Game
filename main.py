@@ -43,6 +43,7 @@ class Player:
         self.health = 100
         self.word = random.choice(words)
         self.enemies_killed = 0
+        self.image = pygame.image.load("ship.png")
         self.invincible = False
 
     def move(self, new_rect, grid):
@@ -68,7 +69,7 @@ class Player:
         return adjacent_words
 
     def draw(self, surface):
-        pygame.draw.rect(surface, "red", self.rect)
+        surface.blit(self.image, self.rect)
 
 class Bullet:
     def __init__(self, x, y):
