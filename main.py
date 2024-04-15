@@ -156,7 +156,6 @@ def check_collision(player, enemies, bullets):
         if bullet.rect.colliderect(enemy.rect):
             enemies.remove(enemy)
             bullets.remove(bullet)
-            player.enemies_killed += 1
             break
       
 def spawn_enemy(enemies, grid):
@@ -196,7 +195,11 @@ bullets = []
 
 def main():
     input_string = ""
+    stage = 1
+    enemies_killed = 2
+    enemy_cap = 5
     clock = pygame.time.Clock()
+  
 
     while True:
         for event in pygame.event.get():
@@ -230,18 +233,21 @@ def main():
         for enemy in enemies:
           enemy.draw(screen)
         draw_player_word(player.word)
-        text_surface = font.render(str(player.health), True, "black")
-        text_rect = pygame.Rect(10, 10, 100, 100)
-        screen.blit(text_surface, text_rect)
+        text_surface1 = font.render("Health: " + str(player.health), True, "black")
+        text_rect1 = pygame.Rect(10, 10, 100, 100)
+        screen.blit(text_surface1, text_rect1)
+        text_surface2 = font.render("Stage: " + str(stage), True, "black")
+        text_rect2 = pygame.Rect(10, 950, 100, 100)
+        screen.blit(text_surface2, text_rect2)
         for bullet in bullets:
             bullet.draw(screen)
         pygame.display.flip()
-        if len(enemies) < 5:
+        if len(enemies) < enemy_cap:
           spawn_enemy(enemies, grid)
         if player.health <= 0:
             print("Game Over")
-            #pygame.quit()
-        clock.tick(60)  # Limit to 60 frames per second
+            pygame.quit()
+        clock.tick(60)
 
 if __name__ == "__main__":
     main()
