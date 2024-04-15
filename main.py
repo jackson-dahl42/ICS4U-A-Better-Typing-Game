@@ -6,11 +6,16 @@ pygame.init()
 pygame.font.init()
 pygame.font.get_fonts()
 display_info = pygame.display.Info()
-WIDTH, HEIGHT = display_info.current_w, display_info.current_h
+WIDTH, HEIGHT = 1000, 1000
 TILE_SIZE = 100
 GRID_WIDTH, GRID_HEIGHT = 8, 8
-screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 font = pygame.font.SysFont(None, 24)
+grid = []
+grid_width_pixels = GRID_WIDTH * TILE_SIZE
+grid_height_pixels = GRID_HEIGHT * TILE_SIZE
+grid_x_offset = (WIDTH - grid_width_pixels) // 2
+grid_y_offset = (HEIGHT - grid_height_pixels) // 2
 
 words = [
     "cat", "dog", "bat", "fly", "pig", "cow", "ant", "frog", 
@@ -39,12 +44,21 @@ class Tile:
 
 class Player:
     def __init__(self, x, y):
-        self.rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
+        self.rect = pygame.Rect(x + grid_x_offset, y + grid_y_offset, TILE_SIZE, TILE_SIZE)
         self.health = 100
         self.word = random.choice(words)
         self.enemies_killed = 0
         self.image = pygame.image.load("ship.png")
         self.invincible = False
+        self.invincibility_timer = 0
+        self.invincibility_duration = 120
+
+
+    def update(self):
+      if self.invincible:
+          self.invincibility_timer -= 1
+          if self.invincibility_timer <= 0:
+              self.invincible = False
 
     def move(self, new_rect, grid):
         previous_tile = None
@@ -80,7 +94,7 @@ class Bullet:
         self.rect.y -= self.speed
 
     def draw(self, surface):
-        pygame.draw.rect(surface, "green", self.rect)
+        pygame.draw.rect(surface, "red", self.rect)
 
 def draw_player_word(word):
     text_surface = font.render(word, True, "black")
@@ -89,7 +103,7 @@ def draw_player_word(word):
 
 class Enemy:
     def __init__(self, x, y, speed, direction):
-        self.rect = pygame.Rect(x * TILE_SIZE + 50, y * TILE_SIZE + 50, TILE_SIZE, TILE_SIZE)
+        self.rect = pygame.Rect(x * TILE_SIZE + grid_x_offset, y * TILE_SIZE + grid_y_offset, TILE_SIZE, TILE_SIZE)
         self.speed = speed
         self.direction = direction
         self.image = pygame.image.load("bug_enemya.png")
@@ -126,17 +140,24 @@ class Enemy:
       surface.blit(rotated_image, rotated_rect)
 
 def check_collision(player, enemies, bullets):
+    if player.invincible:
+      return
     for enemy in enemies:
       if player.rect.colliderect(enemy.rect):
-        player.health -= 10
+          player.health -= 10
+          player.invincible = True
+          player.invincibility_timer = player.invincibility_duration
+          break
     for bullet in bullets:
       if bullet.rect.y < 0:
         bullets.remove(bullet)
+        break
       for enemy in enemies:
         if bullet.rect.colliderect(enemy.rect):
             enemies.remove(enemy)
             bullets.remove(bullet)
             player.enemies_killed += 1
+            break
       
 def spawn_enemy(enemies, grid):
   side = random.choice(["left", "right", "top", "bottom"])
@@ -159,11 +180,12 @@ def spawn_enemy(enemies, grid):
   enemies.append(Enemy(x, y, 5, direction))
 
   
-grid = []
+
+
 for row in range(GRID_HEIGHT):
     for col in range(GRID_WIDTH):
-        x = col * TILE_SIZE + 50
-        y = row * TILE_SIZE + 50
+        x = grid_x_offset + col * TILE_SIZE
+        y = grid_y_offset + row * TILE_SIZE
         word = words[row * GRID_WIDTH + col]
         tile = Tile(x, y, TILE_SIZE, TILE_SIZE, word)
         grid.append(tile)
@@ -199,19 +221,20 @@ def main():
             bullet.move()
         for enemy in enemies:
           enemy.move()
+        player.update()
         check_collision(player, enemies, bullets)
-
         screen.fill("grey")
         for tile in grid:
             tile.draw(screen)
-
         player.draw(screen)
         for enemy in enemies:
           enemy.draw(screen)
         draw_player_word(player.word)
+        text_surface = font.render(str(player.health), True, "black")
+        text_rect = pygame.Rect(10, 10, 100, 100)
+        screen.blit(text_surface, text_rect)
         for bullet in bullets:
             bullet.draw(screen)
-
         pygame.display.flip()
         if len(enemies) < 5:
           spawn_enemy(enemies, grid)
